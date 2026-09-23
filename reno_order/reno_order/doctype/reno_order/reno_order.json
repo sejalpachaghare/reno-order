@@ -1,0 +1,237 @@
+{
+ "actions": [],
+ "autoname": "format:RO-{####}",
+ "creation": "2026-09-22 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "customer",
+  "customer_address",
+  "contact_person",
+  "transaction_date",
+  "expected_installation_date",
+  "sales_person",
+  "project",
+  "order_type",
+  "status",
+  "items_section",
+  "items",
+  "discount_percent",
+  "total_amount",
+  "discount_amount",
+  "grand_total",
+  "sales_order",
+  "delivery_note",
+  "sales_invoice",
+  "installation_completed"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1,
+   "search_index": 1,
+   "in_list_view": 1,
+   "permlevel": 1
+  },
+  {
+   "fieldname": "customer_address",
+   "fieldtype": "Link",
+   "label": "Customer Address",
+   "options": "Address"
+  },
+  {
+   "fieldname": "contact_person",
+   "fieldtype": "Link",
+   "label": "Contact Person",
+   "options": "Contact"
+  },
+  {
+   "fieldname": "transaction_date",
+   "fieldtype": "Date",
+   "label": "Transaction Date",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "expected_installation_date",
+   "fieldtype": "Date",
+   "label": "Expected Installation Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sales_person",
+   "fieldtype": "Link",
+   "label": "Sales Person",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Project",
+   "options": "Project"
+  },
+  {
+   "fieldname": "order_type",
+   "fieldtype": "Select",
+   "label": "Order Type",
+   "options": "Standard\nCustom",
+   "reqd": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nConfirmed\nIn Production\nReady for Installation\nInstalled\nClosed\nCancelled",
+   "default": "Draft",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "items_section",
+   "fieldtype": "Section Break",
+   "label": "Items"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "Reno Order Item"
+  },
+  {
+   "fieldname": "discount_percent",
+   "fieldtype": "Percent",
+   "label": "Discount Percent",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "label": "Total Amount",
+   "read_only": 1,
+   "permlevel": 1
+  },
+  {
+   "fieldname": "discount_amount",
+   "fieldtype": "Currency",
+   "label": "Discount Amount",
+   "read_only": 1,
+   "permlevel": 1
+  },
+  {
+   "fieldname": "grand_total",
+   "fieldtype": "Currency",
+   "label": "Grand Total",
+   "read_only": 1,
+   "permlevel": 1
+  },
+  {
+   "fieldname": "sales_order",
+   "fieldtype": "Link",
+   "label": "Sales Order",
+   "options": "Sales Order",
+   "read_only": 1
+  },
+  {
+   "fieldname": "delivery_note",
+   "fieldtype": "Link",
+   "label": "Delivery Note",
+   "options": "Delivery Note",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sales_invoice",
+   "fieldtype": "Link",
+   "label": "Sales Invoice",
+   "options": "Sales Invoice",
+   "read_only": 1
+  },
+  {
+   "fieldname": "installation_completed",
+   "fieldtype": "Check",
+   "label": "Installation Completed",
+   "read_only": 1,
+   "default": 0
+  }
+ ],
+ "has_web_view": 0,
+ "index_web_routes_by_route_name": 0,
+ "is_submittable": 1,
+ "istable": 0,
+ "modified": "2026-09-22 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Reno Order",
+ "name": "Reno Order",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "permlevel": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales User",
+   "write": 1
+  },
+  {
+   "permlevel": 1,
+   "role": "Sales User",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales Manager",
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "permlevel": 1,
+   "role": "Sales Manager",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Site Supervisor",
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Accounts User"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Production User"
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "transaction_date",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
