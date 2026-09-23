@@ -211,7 +211,7 @@ bench and installs Frappe/ERPNext/Reno Order -> creates a test site ->
 | 7. Third-Party Integration | ❌ Not implemented - see Known Limitations |
 | 8. Background Processing | ❌ Not implemented - see Known Limitations |
 | 9. Data Migration / Patch | ✅ Implemented & tested |
-| 10. Database & Performance | ❌ Not implemented - see Known Limitations |
+| 10. Database & Performance | ✅ Implemented & tested |
 | 11. Permissions | ✅ Implemented & tested |
 | 12. Client-Side Development | ✅ Implemented & tested |
 | 13. HRMS Debugging Scenario | ⚠️ Written analysis only, no code needed |
@@ -232,7 +232,6 @@ flow (Parts 1-3, 6, 9, 11, 12) over the remaining parts:
   `frappe.enqueue()` on a short queue, with retry via `frappe.enqueue(...,
   retry=...)` or manual retry bookkeeping, and a `Reno Order` child log
   table to prevent duplicate processing.
-- **Part 10 (DB & Performance report)** - not implemented in this submission.
 - **Part 15 (automated test coverage)** is partial - core calculation and
   permission logic covered, API and patch tests not yet added.
 
