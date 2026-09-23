@@ -4,7 +4,12 @@
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
+reno_order.patches.007_backfill_order_type
 
 [post_fixture_sync]
 # Patches added in this section will be executed after fixtures and customizations
 # (Custom Field, Property Setter, etc) are synced
+reno_order.patches.001_create_roles
+reno_order.patches.002_create_reno_order_workflow
+reno_order.patches.003_set_reno_order_permissions
+reno_order.patches.004_add_workflow_states_transitions

@@ -169,13 +169,9 @@ use_json_request_body = True
 # -----------
 # Permissions evaluated in scripted ways
 
-# permission_query_conditions = {
-# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
-# }
-#
-# has_permission = {
-# 	"Event": "frappe.desk.doctype.event.event.has_permission",
-# }
+permission_query_conditions = {
+	"Reno Order": "reno_order.reno_order.doctype.reno_order.reno_order.get_permission_query_conditions",
+}
 
 # Document Events
 # ---------------
@@ -192,23 +188,11 @@ use_json_request_body = True
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"reno_order.tasks.all"
-# 	],
-# 	"daily": [
-# 		"reno_order.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"reno_order.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"reno_order.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"reno_order.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+	"daily": [
+		"reno_order.reno_order.tasks.flag_overdue_installations"
+	]
+}
 
 # Testing
 # -------
