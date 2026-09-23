@@ -97,6 +97,75 @@ each part's notes below. Key things to check by hand:
   reverse order.
 - Calling the mobile API with/without a valid token to see auth enforced.
 
+## Database & Performance (Part 10)
+
+**Report:** Monthly Reno Order Value grouped by Status, last 12 months.
+
+```sql
+SELECT
+    DATE_FORMAT(transaction_date, '%Y-%m') as month,
+    status,
+    SUM(grand_total) as total_value
+FROM `tabReno Order`
+WHERE transaction_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+GROUP BY DATE_FORMAT(transaction_date, '%Y-%m'), status
+ORDER BY month DESC, status
+```
+
+Tested against 100,033 real rows (generated for this test).
+
+**EXPLAIN before any index:**
+```
+type: ALL | possible_keys: None | key: None | rows: 99244
+Extra: Using where; Using temporary; Using filesort
+```
+Full table scan - every row is read to evaluate the WHERE clause.
+
+**Optimization:** added a composite index via
+`reno_order/patches/008_add_reno_order_perf_index.py`:
+```python
+frappe.db.add_index("Reno Order", ["transaction_date", "status"],
+                     index_name="transaction_date_status_index")
+```
+
+**EXPLAIN after the index, same 12-month query:**
+```
+type: ALL | possible_keys: transaction_date_status_index | key: None | rows: 99060
+```
+The optimizer saw the index but chose **not** to use it - because a 12-month
+window against ~18 months of data still matches roughly two-thirds of the
+table, and for MariaDB a full sequential scan is cheaper than an index
+range-scan plus row lookups when that large a fraction of rows will be
+read anyway.
+
+**EXPLAIN for a narrower, more selective query** (last 30 days instead of
+12 months) against the same table/index:
+```
+type: range | key: transaction_date_status_index | rows: 11480
+Extra: Using index condition; Using temporary; Using filesort
+```
+Here the index **is** used - rows scanned drops from ~99k to ~11.5k.
+
+**Why this matters / what I'd explain in the interview:**
+- **Why this index:** `transaction_date` is the WHERE-clause filter column
+  and the natural date-range predicate; `status` is appended because it is
+  the GROUP BY column, letting a covering-ish scan avoid extra lookups for
+  the status value.
+- **When an index helps:** when the query is *selective* - it will only
+  touch a small fraction of the table (as shown by the 30-day query above).
+- **When an index can hurt:** write overhead (every INSERT/UPDATE must also
+  maintain the index) and disk/memory usage, and - as seen directly above -
+  a low-selectivity query gets *no* benefit from it, so indexing every
+  column "just in case" is a real cost with no guaranteed payoff.
+- **How to safely introduce an index on production:** use
+  `frappe.db.add_index()` in a patch (idempotent - re-running is a no-op)
+  rather than a raw `ALTER TABLE`, run it during a low-traffic window,
+  and prefer InnoDB's online DDL (`ALGORITHM=INPLACE, LOCK=NONE`, which
+  MariaDB uses by default for secondary index creation) so the table is not
+  locked for writes while the index builds. On a very large table, monitor
+  replica lag if using replication, since the index build also has to
+  replay on replicas.
+
 ## CI/CD
 
 `.github/workflows/ci.yml` runs on every push/PR to `main`/`develop`:
