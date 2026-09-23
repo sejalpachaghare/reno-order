@@ -71,11 +71,17 @@ jobs:
             --no-mariadb-socket
           bench --site test_site install-app erpnext
           bench --site test_site install-app reno_order
-          # Force a full migrate so ERPNext's standard fixture data (Warehouse
-          # Type, etc.) is definitely synced before tests run - a fresh CI
-          # site can otherwise miss records that install-app alone doesn't
-          # guarantee, causing unrelated LinkValidationError failures.
           bench --site test_site migrate
+
+          # ERPNext's default "Warehouse Type" master records (Transit, etc.)
+          # are normally created by the setup wizard, which a headless CI
+          # install-app never runs - so Company's auto-generated test record
+          # fails to create its default Transit warehouse. Create the
+          # missing master record directly; harmless no-op if it already
+          # exists.
+          bench --site test_site execute frappe.client.insert --kwargs \
+            '{"doc": {"doctype": "Warehouse Type", "name": "Transit"}}' \
+            || true
         env:
           FRAPPE_SITE_NAME_HEADER: test_site
 
