@@ -97,6 +97,38 @@ each part's notes below. Key things to check by hand:
   reverse order.
 - Calling the mobile API with/without a valid token to see auth enforced.
 
+## CI/CD
+
+`.github/workflows/ci.yml` runs on every push/PR to `main`/`develop`:
+Code Push -> spins up MariaDB + Redis service containers -> builds a fresh
+bench and installs Frappe/ERPNext/Reno Order -> creates a test site ->
+`bench run-tests --app reno_order` -> reports pass/fail.
+
+**Extending to Development -> Staging -> Production:**
+- Add environment-scoped jobs that only run on specific branches/tags:
+  `develop` push -> auto-deploy to a Development server; a tag like `v*` or
+  merge to a `staging` branch -> deploy to Staging after CI passes; a manual
+  `workflow_dispatch` approval gate (GitHub Environments with required
+  reviewers) -> deploy to Production. Each environment gets its own secrets
+  (`STAGING_SSH_KEY`, `PROD_SSH_KEY`, etc.) stored in GitHub Environment
+  secrets, never in the workflow file itself.
+- The deploy step itself would SSH into the target bench and run
+  `bench get-app`/`git pull` + `bench --site <site> migrate` +
+  `bench build`, then restart supervisor/gunicorn - the same commands used
+  manually today, just automated and gated by environment approval.
+
+**Rollback strategy if a production deployment fails:**
+- Because Frappe migrations are mostly additive (new fields/doctypes) and
+  patches are idempotent (see Part 9), the safest rollback is: redeploy the
+  previous known-good git commit/tag and run `bench migrate` again - Frappe
+  does not require an explicit "down" migration for additive schema changes.
+- For a schema change that genuinely cannot roll forward safely, restore
+  the pre-deployment database backup (`bench --site <site> backup` should
+  always run immediately before any production migration) and redeploy the
+  previous release tag.
+- Keep deployments tagged (`v1.2.0`, etc.) so "rollback" is simply
+  "redeploy tag N-1" rather than trying to hand-reverse specific commits.
+
 ## Known limitations
 
 Given the assignment's time constraints, the following parts are

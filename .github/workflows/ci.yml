@@ -1,0 +1,90 @@
+name: CI
+
+# Code Push -> Build/Setup -> Test -> Result
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mariadb:10.6
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      redis-cache:
+        image: redis:alpine
+        ports:
+          - 13000:6379
+
+      redis-queue:
+        image: redis:alpine
+        ports:
+          - 11000:6379
+
+    steps:
+      # --- Build / Setup ---
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y wkhtmltopdf
+
+      - name: Install Bench CLI
+        run: pip install frappe-bench
+
+      - name: Initialize bench and install apps
+        run: |
+          bench init --skip-redis-config-generation --skip-assets --frappe-branch version-15 ci-bench
+          cd ci-bench
+          bench get-app erpnext --branch version-15
+          bench get-app reno_order "$GITHUB_WORKSPACE"
+
+      - name: Create test site
+        working-directory: ci-bench
+        run: |
+          bench new-site test_site \
+            --db-root-password root \
+            --admin-password admin \
+            --no-mariadb-socket
+          bench --site test_site install-app erpnext
+          bench --site test_site install-app reno_order
+        env:
+          FRAPPE_SITE_NAME_HEADER: test_site
+
+      # --- Test ---
+      - name: Run automated tests
+        working-directory: ci-bench
+        run: bench --site test_site run-tests --app reno_order
+
+      # --- Result ---
+      - name: Report status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "✅ All Reno Order tests passed"
+          else
+            echo "❌ Tests failed - see log above"
+          fi
