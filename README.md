@@ -214,12 +214,12 @@ bench and installs Frappe/ERPNext/Reno Order -> creates a test site ->
 | 10. Database & Performance | ✅ Implemented & tested |
 | 11. Permissions | ✅ Implemented & tested |
 | 12. Client-Side Development | ✅ Implemented & tested |
-| 13. HRMS Debugging Scenario | ⚠️ Written analysis only, no code needed |
-| 14. Debugging Scenario | ⚠️ Written analysis only, no code needed |
+| 13. HRMS Debugging Scenario | ✅ Written analysis - `docs/written-answers.md` |
+| 14. Debugging Scenario | ✅ Written analysis - `docs/written-answers.md` |
 | 15. Testing | ⚠️ Partial - core logic covered, not exhaustive |
 | 16. Git & Code Quality | ✅ Implemented |
 | 17. CI/CD | ✅ Implemented - `.github/workflows/ci.yml` |
-| 18. Production & Server Knowledge | ⚠️ Written answers only, no code needed |
+| 18. Production & Server Knowledge | ✅ Written answers - `docs/written-answers.md` |
 
 ## Known limitations
 
