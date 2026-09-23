@@ -142,9 +142,13 @@ the core flow (Parts 1-3, 6, 9, 11, 12) over the remaining parts:
   table to prevent duplicate processing.
 - Part 10 (DB & Performance report) - not yet implemented in this submission.
 - Part 13/14 (Debugging scenarios) - answered as written analysis, not code.
-- Part 17/18 (CI/CD, Production knowledge) - answered as written explanation.
+- Part 18 (Production knowledge) - answered as written explanation.
 - Part 15 (automated test coverage) is partial - core calculation and
   permission logic covered, API and patch tests not yet added.
+
+Part 17 (CI/CD) is implemented - see `.github/workflows/ci.yml` and the
+"CI/CD" section above for the pipeline itself and the extension/rollback
+explanation.
 
 These are documented here rather than silently skipped, per the assignment's
 own instruction to "clearly document assumptions."
