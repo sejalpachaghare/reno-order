@@ -71,6 +71,11 @@ jobs:
             --no-mariadb-socket
           bench --site test_site install-app erpnext
           bench --site test_site install-app reno_order
+          # Force a full migrate so ERPNext's standard fixture data (Warehouse
+          # Type, etc.) is definitely synced before tests run - a fresh CI
+          # site can otherwise miss records that install-app alone doesn't
+          # guarantee, causing unrelated LinkValidationError failures.
+          bench --site test_site migrate
         env:
           FRAPPE_SITE_NAME_HEADER: test_site
 
