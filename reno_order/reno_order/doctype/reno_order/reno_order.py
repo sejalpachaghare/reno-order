@@ -84,6 +84,12 @@ class RenoOrder(Document):
         """Called after document is submitted"""
         self.validate_discount_approval()
 
+        # Part 7/8: notify the external CRM that this customer's order is
+        # confirmed. Queued as a background job - the external call can
+        # take 10-20s and must never make this save operation slow.
+        from reno_order.reno_order.integrations.crm_sync import queue_crm_sync
+        queue_crm_sync(self.name)
+
     def on_cancel(self):
         """Cancel downstream documents in reverse order: SI -> DN -> SO"""
         if self.get("sales_invoice"):

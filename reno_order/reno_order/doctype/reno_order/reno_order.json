@@ -24,7 +24,8 @@
   "sales_order",
   "delivery_note",
   "sales_invoice",
-  "installation_completed"
+  "installation_completed",
+  "crm_sync_status"
  ],
  "fields": [
   {
@@ -156,6 +157,15 @@
    "label": "Installation Completed",
    "read_only": 1,
    "default": 0
+  },
+  {
+   "fieldname": "crm_sync_status",
+   "fieldtype": "Select",
+   "label": "CRM Sync Status",
+   "options": "Not Synced\nQueued\nSynced\nFailed",
+   "default": "Not Synced",
+   "read_only": 1,
+   "in_list_view": 1
   }
  ],
  "has_web_view": 0,
