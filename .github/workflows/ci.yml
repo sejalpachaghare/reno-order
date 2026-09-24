@@ -73,30 +73,17 @@ jobs:
           bench --site test_site install-app reno_order
           bench --site test_site migrate
 
-          # ERPNext's standard root tree records (Warehouse Type, Customer
-          # Group, Territory, Item Group, Supplier Group) are normally
-          # created by the setup wizard, which a headless CI install-app
-          # never runs. Frappe's test framework auto-creates a test Company
-          # and Customer record, whose own controllers need these roots to
-          # exist (e.g. Company.create_default_warehouses() needs a
-          # "Transit" Warehouse Type; a test Customer needs a root Customer
-          # Group/Territory). Create each directly; `|| true` makes each
-          # line a harmless no-op if it already exists.
-          bench --site test_site execute frappe.client.insert --kwargs \
-            '{"doc": {"doctype": "Warehouse Type", "name": "Transit"}}' \
-            || true
-          bench --site test_site execute frappe.client.insert --kwargs \
-            '{"doc": {"doctype": "Customer Group", "customer_group_name": "All Customer Groups", "is_group": 1}}' \
-            || true
-          bench --site test_site execute frappe.client.insert --kwargs \
-            '{"doc": {"doctype": "Territory", "territory_name": "All Territories", "is_group": 1}}' \
-            || true
-          bench --site test_site execute frappe.client.insert --kwargs \
-            '{"doc": {"doctype": "Item Group", "item_group_name": "All Item Groups", "is_group": 1}}' \
-            || true
-          bench --site test_site execute frappe.client.insert --kwargs \
-            '{"doc": {"doctype": "Supplier Group", "supplier_group_name": "All Supplier Groups", "is_group": 1}}' \
-            || true
+          # Standard Frappe/ERPNext master data (Gender, Salutation,
+          # Warehouse Type, root Customer Group/Territory/Item
+          # Group/Supplier Group) is normally created by the setup wizard,
+          # which a headless CI install-app never runs. Frappe's test
+          # framework auto-generates test records by walking every Link
+          # field it finds (Reno Order -> Customer -> Contact -> Gender,
+          # Customer -> Territory, etc.), so a fresh site is missing
+          # whatever that walk needs. bootstrap_test_masters.py creates the
+          # known set in one place, defensively, instead of discovering
+          # them one CI run at a time.
+          bench --site test_site execute reno_order.reno_order.ci.bootstrap_test_masters.run
         env:
           FRAPPE_SITE_NAME_HEADER: test_site
 

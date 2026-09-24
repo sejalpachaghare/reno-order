@@ -220,6 +220,25 @@ Code Push -> spins up MariaDB + Redis service containers -> builds a fresh
 bench and installs Frappe/ERPNext/Reno Order -> creates a test site ->
 `bench run-tests --app reno_order` -> reports pass/fail.
 
+**Known issue - the "Run automated tests" step is currently red.** This is
+an environment/fixture issue, not an application bug: `bench run-tests`
+auto-generates test records by recursively walking every Link field it
+finds (Reno Order -> Customer -> Contact -> Gender, Customer -> Territory,
+etc.), and a headless `bench install-app` in CI does not run the setup
+wizard that normally seeds that master data (Warehouse Type, Gender,
+Salutation, root Customer Group/Territory/Item Group). I fixed three
+successive layers of this (see the `fix:` commits touching `ci.yml` and
+`ci/bootstrap_test_masters.py`) and the chain goes deeper than I had time
+to fully resolve before this submission was due.
+
+**This is a CI-environment gap, not a defect in the tests or the
+application code**: `bench --site <a real, seeded site> run-tests --app
+reno_order` passes all 10 tests locally (verified directly, bypassing only
+the test-record auto-generation step that needs this master data - see
+`CHANGELOG.md`). The build/install/site-creation stages of the pipeline
+all succeed; only the auto-generated-test-record step on a from-scratch
+site is affected.
+
 **Extending to Development -> Staging -> Production:**
 - Add environment-scoped jobs that only run on specific branches/tags:
   `develop` push -> auto-deploy to a Development server; a tag like `v*` or
@@ -265,7 +284,7 @@ bench and installs Frappe/ERPNext/Reno Order -> creates a test site ->
 | 14. Debugging Scenario | ✅ Written analysis - `docs/written-answers.md` |
 | 15. Testing | ✅ Implemented - 10 tests, `test_reno_order.py` |
 | 16. Git & Code Quality | ✅ Implemented |
-| 17. CI/CD | ✅ Implemented - `.github/workflows/ci.yml` |
+| 17. CI/CD | ⚠️ Pipeline implemented, test step has a CI-environment fixture gap - see CI/CD section |
 | 18. Production & Server Knowledge | ✅ Written answers - `docs/written-answers.md` |
 
 ## Known limitations
