@@ -5,7 +5,10 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "discount_approval_threshold"
+  "discount_approval_threshold",
+  "crm_section",
+  "crm_webhook_url",
+  "crm_api_key"
  ],
  "fields": [
   {
@@ -13,6 +16,24 @@
    "fieldname": "discount_approval_threshold",
    "fieldtype": "Currency",
    "label": "Discount Approval Threshold"
+  },
+  {
+   "fieldname": "crm_section",
+   "fieldtype": "Section Break",
+   "label": "External CRM Integration"
+  },
+  {
+   "default": "https://httpbin.org",
+   "description": "Mock external CRM endpoint used for this integration demo",
+   "fieldname": "crm_webhook_url",
+   "fieldtype": "Data",
+   "label": "CRM Webhook URL"
+  },
+  {
+   "description": "Stored encrypted - never exposed via API or in logs",
+   "fieldname": "crm_api_key",
+   "fieldtype": "Password",
+   "label": "CRM API Key"
   }
  ],
  "grid_page_length": 50,

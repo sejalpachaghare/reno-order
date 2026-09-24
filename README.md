@@ -175,6 +175,44 @@ Here the index **is** used - rows scanned drops from ~99k to ~11.5k.
   replica lag if using replication, since the index build also has to
   replay on replicas.
 
+## Third-Party Integration & Background Processing (Parts 7, 8)
+
+`reno_order/reno_order/integrations/crm_sync.py` pushes a confirmed Reno
+Order's customer to a mock external CRM (https://httpbin.org - a public
+HTTP testing service, standing in for a real CRM account) as a background
+job, triggered from `on_submit`.
+
+**Why background, not inline:** the brief assumes the external API can
+take 10-20 seconds. Running that inside the save/submit request would make
+every Confirm action feel frozen to the user. Instead, `on_submit` calls
+`queue_crm_sync()`, which just flips a status field and calls
+`frappe.enqueue(..., queue="long")` - the actual HTTP call happens later,
+in a separate worker process. Verified directly: right after Confirm,
+`crm_sync_status` is already `Queued` (the save returned immediately); a
+few seconds later, once the background worker has run, it becomes
+`Synced`.
+
+**What it demonstrates (Part 7's checklist):**
+- *Authentication* - a Bearer token read from `Reno Order Settings.crm_api_key`
+- *Request/response handling* - a real `requests.post`, `response.raise_for_status()`
+- *Timeout handling* - a 20s timeout on the request
+- *Retry strategy* - 3 attempts, exponential backoff (2s, 4s, 8s)
+- *Error handling* - `requests.exceptions.Timeout` / `RequestException` caught per attempt, never crashes the worker
+- *Logging* - every attempt logged via `frappe.logger()`; final failure recorded via `frappe.log_error()` with a short title (see Fixed section in CHANGELOG for why that matters)
+- *Secure credential storage* - `crm_api_key` is a `Password` fieldtype (encrypted at rest by Frappe), decrypted only in memory for the outbound call via `get_decrypted_password()`, never logged or returned to any API response
+
+**What it demonstrates (Part 8's checklist):**
+- *Background job creation* - `frappe.enqueue()`
+- *Queue selection* - the `long` queue, appropriate for a call that can take up to 20s
+- *Failure handling* - after retries are exhausted, `crm_sync_status` is set to `Failed` and an Error Log entry is written
+- *Retry strategy* - shared with Part 7, above
+- *Logging* - shared with Part 7, above
+- *Protection against duplicate processing* - two layers: (1) `queue_crm_sync()` is a no-op if the order is already `Queued` or `Synced`; (2) `frappe.enqueue(deduplicate=True, job_id=f"crm-sync-{name}")` - Frappe's own RQ wrapper refuses to queue a second job with the same id while one is already queued or running
+
+Tested the failure path directly by pointing the CRM URL at a broken
+endpoint: 3 attempts with backoff, then `crm_sync_status` correctly becomes
+`Failed` with a matching Error Log entry.
+
 ## CI/CD
 
 `.github/workflows/ci.yml` runs on every push/PR to `main`/`develop`:
@@ -217,8 +255,8 @@ bench and installs Frappe/ERPNext/Reno Order -> creates a test site ->
 | 4. Manufacturing Scenario | ✅ Demonstrated via standard ERPNext config |
 | 5. Buying Scenario | ✅ Demonstrated via standard ERPNext config |
 | 6. REST API / Mobile Integration | ✅ Implemented & tested |
-| 7. Third-Party Integration | ❌ Not implemented - see Known Limitations |
-| 8. Background Processing | ❌ Not implemented - see Known Limitations |
+| 7. Third-Party Integration | ✅ Implemented & tested - `integrations/crm_sync.py` |
+| 8. Background Processing | ✅ Implemented & tested - `integrations/crm_sync.py` |
 | 9. Data Migration / Patch | ✅ Implemented & tested |
 | 10. Database & Performance | ✅ Implemented & tested |
 | 11. Permissions | ✅ Implemented & tested |
@@ -232,15 +270,8 @@ bench and installs Frappe/ERPNext/Reno Order -> creates a test site ->
 
 ## Known limitations
 
-Given the assignment's time constraints, the following are intentionally
-not implemented in this submission, in order of priority given to the core
-flow (Parts 1-3, 6, 9, 11, 12) over the remaining parts:
-
-- **Part 7 (Third-Party Integration) & Part 8 (Background Processing)** -
-  not implemented. Approach would be: a mock external API called via
-  `frappe.enqueue()` on a short queue, with retry via `frappe.enqueue(...,
-  retry=...)` or manual retry bookkeeping, and a `Reno Order` child log
-  table to prevent duplicate processing.
-
-These are documented here rather than silently skipped, per the assignment's
-own instruction to "clearly document assumptions."
+All 18 parts are implemented. Test coverage in `test_reno_order.py` is
+solid on the core business logic (calculations, permissions, the
+Sales Order/Invoice chain, the data patch) but is not exhaustive -
+there is room to add more edge-case tests for the mobile API and the
+CRM integration's retry path specifically.
