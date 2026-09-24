@@ -87,6 +87,15 @@ Run the app's test suite:
 bench --site your-site run-tests --app reno_order
 ```
 
+`test_reno_order.py` covers: total/discount calculation, a manipulated
+grand_total being ignored, invalid installation date, negative qty/rate,
+discount-approval-threshold enforcement, Sales Order creation, duplicate
+Sales Order prevention, Sales Invoice creation exactly once at Installed
+(and not duplicated on a re-run), an unauthorized mobile API call being
+rejected, row-level permission visibility for a Sales User, and the
+`007_backfill_order_type` patch (fills blanks, leaves real values alone,
+safe to re-run).
+
 Manual verification steps for the core flow are in the demo video and in
 each part's notes below. Key things to check by hand:
 - Creating a Reno Order and confirming totals recalculate server-side even
@@ -254,18 +263,15 @@ bench and installs Frappe/ERPNext/Reno Order -> creates a test site ->
 | 12. Client-Side Development | ✅ Implemented & tested |
 | 13. HRMS Debugging Scenario | ✅ Written analysis - `docs/written-answers.md` |
 | 14. Debugging Scenario | ✅ Written analysis - `docs/written-answers.md` |
-| 15. Testing | ⚠️ Partial - core logic covered, not exhaustive |
+| 15. Testing | ✅ Implemented - 10 tests, `test_reno_order.py` |
 | 16. Git & Code Quality | ✅ Implemented |
 | 17. CI/CD | ✅ Implemented - `.github/workflows/ci.yml` |
 | 18. Production & Server Knowledge | ✅ Written answers - `docs/written-answers.md` |
 
 ## Known limitations
 
-Given the assignment's time constraints, a couple of items are lighter
-than the rest of this submission:
-
-- **Part 15 (automated test coverage)** is partial - core calculation and
-  permission logic covered, API and patch tests not yet added.
-
-These are documented here rather than silently skipped, per the assignment's
-own instruction to "clearly document assumptions."
+All 18 parts are implemented. Test coverage in `test_reno_order.py` is
+solid on the core business logic (calculations, permissions, the
+Sales Order/Invoice chain, the data patch) but is not exhaustive -
+there is room to add more edge-case tests for the mobile API and the
+CRM integration's retry path specifically.
