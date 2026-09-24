@@ -37,6 +37,20 @@ All notable changes to this project are documented in this file.
 - **Part 12** - "Mark as Installed" custom button (visible only when
   appropriate), dynamic Contact Person/Address filters by Customer, friendly
   client-side discount warning.
+- **Part 7 / 8** - Third-party CRM sync (`integrations/crm_sync.py`) queued
+  via `frappe.enqueue` on the `long` queue from `on_submit`, so Confirming
+  a Reno Order never blocks on the external call. Bearer-token auth, 20s
+  timeout, 3 retries with exponential backoff, encrypted credential storage
+  (`Password` fieldtype), and duplicate-processing protection at both the
+  document-status level and via `deduplicate=True` + `job_id` on the queue
+  itself.
+- **Part 15** - Automated tests covering total/discount calculation
+  (including a manipulated `grand_total` being ignored), invalid
+  installation date, negative qty/rate, discount-approval enforcement,
+  Sales Order creation and duplicate-prevention, Sales Invoice creation
+  exactly once at Installed, an unauthorized mobile API call being
+  rejected, row-level permission visibility, and the `007_backfill_order_type`
+  patch's idempotency.
 
 ### Fixed
 - `on_update` only fires on the initial submit; later workflow transitions
