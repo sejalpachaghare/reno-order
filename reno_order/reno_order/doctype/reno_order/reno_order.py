@@ -13,8 +13,16 @@ def as_system_user():
     the triggering user's own permissions. Needed because ERPNext's accounts
     module (e.g. get_party_account) does its own hard permission checks that
     ignore_permissions=True on insert() does not bypass - a Site Supervisor
-    is authorized to mark an order Installed, not to read Account records."""
+    is authorized to mark an order Installed, not to read Account records.
+
+    frappe.set_user() also overwrites frappe.session.sid with the raw
+    username (see frappe/__init__.py), which is harmless in a background
+    job but corrupts the real session id for a live browser request - the
+    response would then set a cookie that no longer matches any session,
+    logging the user out. So the real sid is saved and restored explicitly,
+    independent of whatever set_user() does to it."""
     current_user = frappe.session.user
+    current_sid = frappe.session.sid
     frappe.set_user("Administrator")
     frappe.flags.ignore_permissions = True
     try:
@@ -22,6 +30,7 @@ def as_system_user():
     finally:
         frappe.flags.ignore_permissions = False
         frappe.set_user(current_user)
+        frappe.session.sid = current_sid
 
 
 def get_permission_query_conditions(user=None):
