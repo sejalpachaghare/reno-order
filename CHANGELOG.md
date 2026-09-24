@@ -53,6 +53,16 @@ All notable changes to this project are documented in this file.
   patch's idempotency.
 
 ### Fixed
+- **Critical**: `frappe.set_user()` inside `as_system_user()` was
+  overwriting `frappe.session.sid` with the raw username instead of
+  leaving the real session hash alone (this is what `set_user()` does
+  internally). Restoring the original user afterward restored the
+  username as `sid` too, not the real session id - so the browser's
+  session cookie stopped matching any real session, and the next request
+  showed "Session Expired". Invisible in `bench console` testing (no real
+  browser session to corrupt); only showed up testing through the actual
+  UI. Fixed by explicitly saving/restoring `frappe.session.sid` around the
+  user switch.
 - `on_update` only fires on the initial submit; later workflow transitions
   on an already-submitted document go through `on_update_after_submit`
   instead - added that hook so every transition (not just the first) drives
