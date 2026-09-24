@@ -73,21 +73,17 @@ jobs:
           bench --site test_site install-app reno_order
           bench --site test_site migrate
 
-          # ERPNext's standard master data (Warehouse Type, root Customer
-          # Group/Territory/Item Group/Supplier Group, UOMs, currencies)
-          # is normally created by the setup wizard, which a headless CI
-          # install-app never runs. Frappe's test framework auto-creates a
-          # test Company and Customer record, whose own controllers need
-          # this master data to exist - e.g. Company.on_update() creates a
-          # default "Transit" warehouse, which needs a "Warehouse Type"
-          # named Transit to already exist.
-          #
-          # erpnext's own install_fixtures.install() is the single,
-          # complete, ERPNext-maintained function that creates all of this
-          # together as a consistent set (this is what the setup wizard
-          # itself calls) - more reliable than hand-picking individual
-          # missing records one error at a time.
-          bench --site test_site execute erpnext.setup.setup_wizard.operations.install_fixtures.install --kwargs '{"country": "India"}'
+          # Standard Frappe/ERPNext master data (Gender, Salutation,
+          # Warehouse Type, root Customer Group/Territory/Item
+          # Group/Supplier Group) is normally created by the setup wizard,
+          # which a headless CI install-app never runs. Frappe's test
+          # framework auto-generates test records by walking every Link
+          # field it finds (Reno Order -> Customer -> Contact -> Gender,
+          # Customer -> Territory, etc.), so a fresh site is missing
+          # whatever that walk needs. bootstrap_test_masters.py creates the
+          # known set in one place, defensively, instead of discovering
+          # them one CI run at a time.
+          bench --site test_site execute reno_order.reno_order.ci.bootstrap_test_masters.run
         env:
           FRAPPE_SITE_NAME_HEADER: test_site
 
