@@ -15,14 +15,17 @@ def as_system_user():
     ignore_permissions=True on insert() does not bypass - a Site Supervisor
     is authorized to mark an order Installed, not to read Account records.
 
-    frappe.set_user() also overwrites frappe.session.sid with the raw
-    username (see frappe/__init__.py), which is harmless in a background
-    job but corrupts the real session id for a live browser request - the
-    response would then set a cookie that no longer matches any session,
-    logging the user out. So the real sid is saved and restored explicitly,
-    independent of whatever set_user() does to it."""
+    frappe.set_user() overwrites session.user, session.sid (with the raw
+    username, not a real session hash) AND session.data (reset to an empty
+    dict - this holds CSRF token and other session metadata). All three
+    are harmless to lose in a background job, but corrupt the real session
+    for a live browser request - the response then carries a cookie/CSRF
+    state that no longer matches any real session, logging the user out.
+    So all three are saved and restored explicitly, independent of
+    whatever set_user() does to them."""
     current_user = frappe.session.user
     current_sid = frappe.session.sid
+    current_data = frappe.session.data
     frappe.set_user("Administrator")
     frappe.flags.ignore_permissions = True
     try:
@@ -31,6 +34,7 @@ def as_system_user():
         frappe.flags.ignore_permissions = False
         frappe.set_user(current_user)
         frappe.session.sid = current_sid
+        frappe.session.data = current_data
 
 
 def get_permission_query_conditions(user=None):

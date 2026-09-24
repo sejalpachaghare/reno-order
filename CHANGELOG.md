@@ -62,7 +62,11 @@ All notable changes to this project are documented in this file.
   showed "Session Expired". Invisible in `bench console` testing (no real
   browser session to corrupt); only showed up testing through the actual
   UI. Fixed by explicitly saving/restoring `frappe.session.sid` around the
-  user switch.
+  user switch - **incomplete on its own**: `set_user()` also resets
+  `session.data` (CSRF token and other session metadata) to an empty
+  dict, which restoring `sid` alone didn't address, so the browser kept
+  seeing "Session Expired" after the first fix. Restoring `session.data`
+  too, alongside `sid`, is what actually resolved it.
 - `on_update` only fires on the initial submit; later workflow transitions
   on an already-submitted document go through `on_update_after_submit`
   instead - added that hook so every transition (not just the first) drives
